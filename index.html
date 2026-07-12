@@ -39,21 +39,28 @@
     <div class="toast" id="toast"></div>
     <script>
         var tg = window.Telegram.WebApp;
+        var webview = window.Telegram.WebView;
+
+        // Debug: what platform and version?
+        var info = 'plat=' + (tg.platform || '?')
+            + ' ver=' + (tg.version || '?')
+            + ' wv=' + (typeof webview)
+            + ' wvpe=' + (webview && typeof webview.postEvent);
+
         tg.expand();
         var toast = document.getElementById('toast');
 
         function show(text) {
             toast.textContent = text;
             toast.classList.add('show');
-            setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+            setTimeout(function(){ toast.classList.remove('show'); }, 3000);
         }
 
-        function run(cmd) {
-            // Copy to clipboard
-            try { navigator.clipboard.writeText(cmd); } catch(e) {}
-            show('✓ Скопировано: ' + cmd);
+        show(info);
 
-            // Try everything to close
+        function run(cmd) {
+            try { navigator.clipboard.writeText(cmd); } catch(e) {}
+            show('✓ ' + cmd);
             try { window.close(); } catch(e) {}
             try { tg.close(); } catch(e) {}
             try { if(tg.sendData) tg.sendData(cmd); } catch(e) {}
