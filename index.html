@@ -20,12 +20,12 @@
         .custom-row { display: flex; gap: 10px; }
         .custom-row input { flex: 1; padding: 14px 16px; border: none; border-radius: 12px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 15px; outline: none; }
         .send-btn { padding: 14px 20px; border: none; border-radius: 12px; background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); font-size: 18px; font-weight: 600; cursor: pointer; min-width: 54px; }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; white-space: nowrap; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
-    <div class="header"><h1>⚡ Hermes</h1><p>Быстрые команды</p></div>
+    <div class="header"><h1>⚡ Hermes</h1><p>Просто нажми — текст скопируется</p></div>
     <div class="grid">
         <button class="cmd-btn" onclick="run('📧 Проверить почту')"><span class="icon">📧</span><span class="label">Проверить почту</span></button>
         <button class="cmd-btn" onclick="run('📋 Брифы в Plane')"><span class="icon">📋</span><span class="label">Брифы в Plane</span></button>
@@ -51,9 +51,12 @@
         function run(cmd) {
             // Copy to clipboard
             try { navigator.clipboard.writeText(cmd); } catch(e) {}
-            show('✓ ' + cmd);
-            // Navigate to chat with pre-filled message
-            window.location.href = 'tg://resolve?domain=fixicshbot&text=' + encodeURIComponent(cmd);
+            show('✓ Скопировано: ' + cmd);
+
+            // Try everything to close
+            try { window.close(); } catch(e) {}
+            try { tg.close(); } catch(e) {}
+            try { if(tg.sendData) tg.sendData(cmd); } catch(e) {}
         }
     </script>
 </body>
