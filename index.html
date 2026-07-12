@@ -266,9 +266,11 @@
                         tg.sendData(payload);
                         showToast('✓ ' + label);
                         return;
+                    } else {
+                        showToast('✗ tg.sendData не существует');
                     }
                 } catch(e) {
-                    // sendData failed, fall through
+                    showToast('✗ ' + (e.message || e));
                 }
 
                 // 2) Fallback: copy to clipboard + show popup
