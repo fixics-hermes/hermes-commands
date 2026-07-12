@@ -234,53 +234,58 @@
 
     <script>
         (function() {
-            const tg = window.Telegram.WebApp;
-            tg.expand();
-            tg.ready();
+            var tg = window.Telegram.WebApp;
 
-            const toast = document.getElementById('toast');
-            let toastTimer = null;
+            // Log tg object properties to debug
+            var debugInfo = 'tg type=' + typeof tg;
+            if (tg) {
+                debugInfo += ' expand=' + (typeof tg.expand);
+                debugInfo += ' close=' + (typeof tg.close);
+                debugInfo += ' sendData=' + (typeof tg.sendData);
+                debugInfo += ' ready=' + (typeof tg.ready);
+            }
+
+            // Show debug info as a toast
+            var toast = document.getElementById('toast');
 
             function showToast(text) {
                 toast.textContent = text;
                 toast.classList.add('show');
-                clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+                setTimeout(function() { toast.classList.remove('show'); }, 3000);
             }
 
+            // Show debug
+            showToast(debugInfo);
+
+            try { tg.expand(); } catch(e) { showToast('expand err: ' + e.message); }
+            try { tg.ready(); } catch(e) { showToast('ready err: ' + e.message); }
+
             function sendCommand(cmd, label, extra) {
-                var text = label;
-                if (extra) text += ': ' + extra;
+                var text = label + (extra ? ': ' + extra : '');
 
-                // Try sendData — works on some clients
+                // Try everything we can
                 try {
-                    if (tg.sendData) {
-                        tg.sendData(JSON.stringify({
-                            command: cmd,
-                            label: label,
-                            text: extra || ''
-                        }));
+                    if (tg && tg.sendData) {
+                        tg.sendData(JSON.stringify({command: cmd, label: label, text: extra || ''}));
                     }
-                } catch(e) {}
+                } catch(e) { showToast('sendData: ' + e.message); }
 
-                // Copy to clipboard as fallback
                 try {
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(text);
                     }
                 } catch(e) {}
 
-                showToast('✓ ' + label);
-                tg.close();
+                try { tg.close(); } catch(e) { showToast('close err: ' + e.message); }
             }
 
-            document.querySelectorAll('.cmd-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var cmd = this.dataset.cmd;
-                    var label = this.querySelector('.label').textContent.trim();
-                    sendCommand(cmd, label);
+            // Bind buttons
+            var buttons = document.querySelectorAll('.cmd-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].addEventListener('click', function() {
+                    sendCommand(this.dataset.cmd, this.querySelector('.label').textContent.trim());
                 });
-            });
+            }
 
             var input = document.getElementById('query-input');
             var sendCustom = document.getElementById('send-btn');
@@ -300,10 +305,6 @@
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') submitCustom();
             });
-
-            if (window.innerWidth > 600) {
-                setTimeout(function() { input.focus(); }, 300);
-            }
         })();
     </script>
 </body>
