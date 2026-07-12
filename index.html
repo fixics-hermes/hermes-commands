@@ -6,172 +6,134 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Hermes</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #1a1a2e); color: var(--tg-theme-text-color, #e0e0e0); height: 100vh; overflow: hidden; }
-        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
-        .screen.hidden { display: none; }
-        #main-screen { padding: 16px; overflow-y: auto; }
-        .header { text-align: center; padding: 12px 0 14px; }
-        .header h1 { font-size: 22px; font-weight: 700; }
-        .header p { font-size: 13px; color: var(--tg-theme-hint-color, #8e8e93); }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #1a1a2e); color: var(--tg-theme-text-color, #e0e0e0); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        /* --- Main screen --- */
+        #main { padding: 12px; min-height: 100%; display: flex; flex-direction: column; }
+        #content { display: none; position: absolute; inset: 0; background: var(--tg-theme-bg-color, #1a1a2e); z-index: 10; flex-direction: column; }
+
+        .hdr { text-align: center; padding: 8px 0 12px; flex-shrink: 0; }
+        .hdr h1 { font-size: 20px; font-weight: 700; margin: 0; }
+        .hdr p { font-size: 12px; color: var(--tg-theme-hint-color, #8e8e93); margin: 2px 0 0; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .cmd-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px 10px; border: none; border-radius: 14px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 78px; transition: transform 0.15s; }
-        .cmd-btn .icon { font-size: 26px; }
-        .cmd-btn .label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.3; }
-        .cmd-btn:active { transform: scale(0.95); opacity: 0.8; }
+        .card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 18px 10px; min-height: 80px; border-radius: 14px; border: none; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); cursor: pointer; font-family: inherit; font-size: 13px; }
+        .card .emoji { font-size: 28px; line-height: 1; }
+        .card .lbl  { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.3; }
+        .card:active { transform: scale(0.94); }
 
-        #content-screen { background: var(--tg-theme-bg-color, #1a1a2e); }
-        .content-bar { display: flex; align-items: center; padding: 10px 12px; background: var(--tg-theme-secondary-bg-color, #232336); min-height: 44px; gap: 10px; flex-shrink: 0; }
-        .back-btn { background: none; border: none; color: var(--tg-theme-button-color, #2b7cff); font-size: 15px; font-weight: 500; cursor: pointer; padding: 4px 8px; }
-        .back-btn::before { content: '← '; }
-        .content-title { font-size: 14px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .content-body { flex: 1; overflow: hidden; position: relative; }
-        .content-body iframe { width: 100%; height: 100%; border: none; }
+        /* --- Content screen --- */
+        #cbar { display: flex; align-items: center; padding: 10px 12px; background: var(--tg-theme-secondary-bg-color, #232336); min-height: 44px; flex-shrink: 0; }
+        #back  { background: none; border: none; color: var(--tg-theme-button-color, #2b7cff); font-size: 15px; font-weight: 500; cursor: pointer; }
+        #ctitle { flex: 1; font-size: 14px; font-weight: 600; margin-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #cbody { flex: 1; overflow: hidden; }
 
-        .action-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 20px; text-align: center; height: 100%; }
-        .action-card .icon { font-size: 48px; }
-        .action-card .msg { font-size: 14px; color: var(--tg-theme-hint-color, #8e8e93); }
-        .action-card .cmd-text { font-size: 16px; font-weight: 600; padding: 12px 20px; background: var(--tg-theme-secondary-bg-color, #232336); border-radius: 12px; margin: 8px 0; }
-        .btn-primary { background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); border: none; padding: 12px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-secondary { background: transparent; color: var(--tg-theme-button-color, #2b7cff); border: 1px solid var(--tg-theme-button-color, #2b7cff); padding: 12px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; z-index: 99; }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .debug-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #333; color: #0f0; font-size: 10px; padding: 3px; text-align: center; font-family: monospace; }
+        .result { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 30px 20px; text-align: center; height: 100%; }
+        .result .emoji { font-size: 44px; }
+        .result .cmd   { font-size: 15px; font-weight: 600; padding: 12px 18px; background: var(--tg-theme-secondary-bg-color, #232336); border-radius: 12px; }
+        .result .hint  { font-size: 12px; color: var(--tg-theme-hint-color, #8e8e93); }
+        .btn { display: inline-block; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); }
+        .btn-outline { background: transparent; border: 1px solid var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-color, #2b7cff); }
+
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); padding: 10px 20px; border-radius: 12px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 99; }
+        .toast.on { opacity: 1; }
     </style>
 </head>
 <body>
 
-<div class="debug-bar" id="debug">⚡</div>
-
-<div class="screen" id="main-screen">
-    <div class="header"><h1>⚡ Hermes</h1><p>Быстрый доступ</p></div>
+<div id="main">
+    <div class="hdr"><h1>⚡ Hermes</h1><p>Быстрый доступ</p></div>
     <div class="grid">
-        <button class="cmd-btn" data-type="cmd" data-cmd="📧 Проверить почту" data-emoji="📧" data-label="Почта">
-            <span class="icon">📧</span><span class="label">Почта</span>
-        </button>
-        <button class="cmd-btn" data-type="open" data-url="https://app.plane.so" data-emoji="📋" data-label="Plane">
-            <span class="icon">📋</span><span class="label">Plane</span>
-        </button>
-        <button class="cmd-btn" data-type="cmd" data-cmd="📊 Статус Zabbix" data-emoji="📊" data-label="Zabbix">
-            <span class="icon">📊</span><span class="label">Zabbix</span>
-        </button>
-        <button class="cmd-btn" data-type="iframe" data-url="/infra-kb/" data-emoji="🖥" data-label="Инфра">
-            <span class="icon">🖥</span><span class="label">Инфра КБ</span>
-        </button>
-        <button class="cmd-btn" data-type="open" data-url="https://kaneo.polynkovsk.ru" data-emoji="📝" data-label="Канбан">
-            <span class="icon">📝</span><span class="label">Канбан</span>
-        </button>
-        <button class="cmd-btn" data-type="open" data-url="https://outline.polynkovsk.ru" data-emoji="📖" data-label="Outline">
-            <span class="icon">📖</span><span class="label">Outline</span>
-        </button>
-        <button class="cmd-btn" data-type="cmd" data-cmd="🔄 Статус систем" data-emoji="🔄" data-label="Системы">
-            <span class="icon">🔄</span><span class="label">Системы</span>
-        </button>
-        <button class="cmd-btn" data-type="cmd" data-cmd="📜 Логи гейта" data-emoji="📜" data-label="Логи">
-            <span class="icon">📜</span><span class="label">Логи</span>
-        </button>
+        <button class="card" data-em="📧" data-lb="Почта" data-cmd="📧 Проверить почту">
+            <span class="emoji">📧</span><span class="lbl">Почта</span></button>
+        <button class="card" data-em="📋" data-lb="Plane" data-url="https://app.plane.so">
+            <span class="emoji">📋</span><span class="lbl">Plane</span></button>
+        <button class="card" data-em="📊" data-lb="Zabbix" data-cmd="📊 Статус Zabbix">
+            <span class="emoji">📊</span><span class="lbl">Zabbix</span></button>
+        <button class="card" data-em="🖥" data-lb="Инфра" data-url="http://109.120.155.82:8090/">
+            <span class="emoji">🖥</span><span class="lbl">Инфра</span></button>
+        <button class="card" data-em="📝" data-lb="Канбан" data-url="https://kaneo.polynkovsk.ru">
+            <span class="emoji">📝</span><span class="lbl">Канбан</span></button>
+        <button class="card" data-em="📖" data-lb="Outline" data-url="https://outline.polynkovsk.ru">
+            <span class="emoji">📖</span><span class="lbl">Outline</span></button>
+        <button class="card" data-em="🔄" data-lb="Системы" data-cmd="🔄 Статус систем">
+            <span class="emoji">🔄</span><span class="lbl">Системы</span></button>
+        <button class="card" data-em="📜" data-lb="Логи" data-cmd="📜 Логи гейта">
+            <span class="emoji">📜</span><span class="lbl">Логи</span></button>
     </div>
 </div>
 
-<div class="screen hidden" id="content-screen">
-    <div class="content-bar">
-        <button class="back-btn" id="back-btn">Главная</button>
-        <div class="content-title" id="content-title"></div>
-    </div>
-    <div class="content-body" id="content-body"></div>
+<div id="content">
+    <div id="cbar"><button id="back">← Главная</button><span id="ctitle"></span></div>
+    <div id="cbody"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-(function() {
-    var D = document.getElementById('debug');
-    function d(m) { D.textContent = m; }
-
+// IIFE — изолированный scope
+!(function(){
     var tg = window.Telegram.WebApp;
-    d('tg=' + typeof tg);
+    if (tg && tg.expand) { try { tg.expand() } catch(e){} }
+    if (tg && tg.ready)  { try { tg.ready()  } catch(e){} }
 
-    try { tg.expand(); } catch(e) { d('expand err: ' + e); }
-    try { tg.ready(); } catch(e) { d('ready err: ' + e); }
+    var mainEl = document.getElementById('main');
+    var cntEl  = document.getElementById('content');
+    var titleEl= document.getElementById('ctitle');
+    var bodyEl = document.getElementById('cbody');
+    var toastEl= document.getElementById('toast');
 
-    var mainScreen = document.getElementById('main-screen');
-    var contentScreen = document.getElementById('content-screen');
-    var contentTitle = document.getElementById('content-title');
-    var contentBody = document.getElementById('content-body');
-    var toast = document.getElementById('toast');
-
-    function showToast(text) {
-        toast.textContent = text;
-        toast.classList.add('show');
-        clearTimeout(toast._t);
-        toast._t = setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+    var toastTimer;
+    function toast(msg) {
+        toastEl.textContent = msg; toastEl.classList.add('on');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 2000);
     }
 
-    document.getElementById('back-btn').addEventListener('click', function() {
-        d('back');
-        mainScreen.classList.remove('hidden');
-        contentScreen.classList.add('hidden');
-    });
+    // Back
+    document.getElementById('back').onclick = function() {
+        cntEl.style.display = 'none';
+        mainEl.style.display = '';
+    };
 
-    var btns = document.querySelectorAll('.cmd-btn');
-    d('btns=' + btns.length);
+    // Click handler
+    function onCard(btn) {
+        var cmd = btn.getAttribute('data-cmd') || '';
+        var url = btn.getAttribute('data-url') || '';
+        var em  = btn.getAttribute('data-em') || '';
+        var lb  = btn.getAttribute('data-lb') || '';
 
-    for (var i = 0; i < btns.length; i++) {
-        btnClick(btns[i]);
+        titleEl.textContent = em + ' ' + lb;
+        mainEl.style.display = 'none';
+        cntEl.style.display = 'flex';
+
+        if (url) {
+            // Open external link
+            bodyEl.innerHTML =
+                '<div class="result">' +
+                '<div class="emoji">' + em + '</div>' +
+                '<div class="hint">' + lb + '</div>' +
+                '<button class="btn" onclick="window.Telegram.WebApp.openLink(\'' + url + '\')">↗ Открыть</button>' +
+                '</div>';
+        } else if (cmd) {
+            // Hermes command — copy
+            bodyEl.innerHTML =
+                '<div class="result">' +
+                '<div class="emoji">' + em + '</div>' +
+                '<div class="cmd">' + cmd + '</div>' +
+                '<div class="hint">Скопировано. Вставь в чат и отправь.</div>' +
+                '</div>';
+            try { navigator.clipboard.writeText(cmd); } catch(e) {}
+            // Also try sendData
+            try { if (tg && tg.sendData) tg.sendData(JSON.stringify({text: cmd})); } catch(e) {}
+            toast('✓ ' + cmd);
+        }
     }
 
-    function btnClick(btn) {
-        btn.addEventListener('click', function() {
-            var type = btn.dataset.type;
-            var cmd = btn.dataset.cmd || '';
-            var url = btn.dataset.url || '';
-            var emoji = btn.dataset.emoji || '';
-            var label = btn.dataset.label || '';
-            d('click: ' + label);
-
-            contentTitle.textContent = emoji + ' ' + (label || cmd);
-            mainScreen.classList.add('hidden');
-            contentScreen.classList.remove('hidden');
-
-            if (type === 'iframe') {
-                contentBody.innerHTML = '<iframe src="' + url + '"></iframe>';
-            } else if (type === 'open') {
-                contentBody.innerHTML =
-                    '<div class="action-card">' +
-                    '<div class="icon">' + emoji + '</div>' +
-                    '<div class="msg">Открыть в браузере</div>' +
-                    '<button class="btn-primary" id="open-ext-btn">↗ ' + label + '</button>' +
-                    '</div>';
-                setTimeout(function() {
-                    var b = document.getElementById('open-ext-btn');
-                    if (b) b.addEventListener('click', function() { tg.openLink(url); });
-                }, 50);
-            } else if (type === 'cmd') {
-                contentBody.innerHTML =
-                    '<div class="action-card">' +
-                    '<div class="icon">' + emoji + '</div>' +
-                    '<div class="msg">Отправить команду</div>' +
-                    '<div class="cmd-text">' + cmd + '</div>' +
-                    '<div class="btn-row">' +
-                    '<button class="btn-primary" id="copy-btn">📋 Копировать</button>' +
-                    '<button class="btn-secondary" id="send-btn">▶ Отправить</button>' +
-                    '</div></div>';
-                setTimeout(function() {
-                    var cb = document.getElementById('copy-btn');
-                    var sb = document.getElementById('send-btn');
-                    if (cb) cb.addEventListener('click', function() {
-                        try { navigator.clipboard.writeText(cmd); } catch(e) {}
-                        showToast('✓ Скопировано: ' + cmd);
-                    });
-                    if (sb) sb.addEventListener('click', function() {
-                        try { tg.sendData(JSON.stringify({text: cmd})); } catch(e) {}
-                        showToast('✓ Отправлено: ' + cmd);
-                        setTimeout(function(){ try { tg.close(); } catch(e) {} }, 600);
-                    });
-                }, 50);
-            }
-        });
+    // Bind cards
+    var cards = document.querySelectorAll('.card');
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].onclick = (function(c){ return function(){ onCard(c); }; })(cards[i]);
     }
 })();
 </script>
