@@ -69,21 +69,33 @@
         }
 
         function run(cmd) {
-            // Copy to clipboard
+            // Try clipboard (may fail silently on some devices)
             try { navigator.clipboard.writeText(cmd); } catch(e) {}
 
-            // Try sendData (best effort)
+            // Try sendData (may work on some clients)
             try {
                 var payload = JSON.stringify({command: 'cmd', text: cmd});
                 if (tg.sendData) tg.sendData(payload);
             } catch(e) {}
 
-            show('↵ Скопировано. Вставь в чат: ' + cmd);
+            // Show popup with command, close mini-app after dismissal
+            if (tg.showPopup) {
+                // Close automatically when popup is dismissed
+                tg.onEvent('popupClosed', function() {
+                    try { tg.close(); } catch(e) {}
+                });
 
-            // Close
-            setTimeout(function() {
-                try { tg.close(); } catch(e) {}
-            }, 300);
+                tg.showPopup({
+                    title: 'Команда',
+                    message: cmd + '\n\nОтправь мне это в чат.',
+                    buttons: [{type: 'close', text: 'ОК'}]
+                });
+            } else {
+                show(cmd);
+                setTimeout(function() {
+                    try { tg.close(); } catch(e) {}
+                }, 2000);
+            }
         }
     </script>
 </body>
