@@ -236,11 +236,7 @@
         (function() {
             const tg = window.Telegram.WebApp;
             tg.expand();
-            tg.MainButton.hide();
-            tg.ready(); // Signal that the web app is ready
-
-            // Set version so we can verify cache busting
-            const APP_VERSION = '2';
+            tg.ready();
 
             const toast = document.getElementById('toast');
             let toastTimer = null;
@@ -253,36 +249,44 @@
             }
 
             function sendCommand(cmd, label, extra) {
-                var fallbackText = label + (extra ? ': ' + extra : '');
+                var text = label;
+                if (extra) text += ': ' + extra;
 
-                // Try deep link method (works on most Telegram clients)
-                var encodedText = encodeURIComponent(fallbackText);
-                window.location.href = 'tg://resolve?domain=fixicshbot&text=' + encodedText;
+                // Try sendData — works on some clients
+                try {
+                    if (tg.sendData) {
+                        tg.sendData(JSON.stringify({
+                            command: cmd,
+                            label: label,
+                            text: extra || ''
+                        }));
+                    }
+                } catch(e) {}
+
+                // Copy to clipboard as fallback
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text);
+                    }
+                } catch(e) {}
+
+                showToast('✓ ' + label);
+                tg.close();
             }
 
-            // Command buttons
             document.querySelectorAll('.cmd-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    const cmd = this.dataset.cmd;
-                    const label = this.querySelector('.label').textContent.trim();
+                    var cmd = this.dataset.cmd;
+                    var label = this.querySelector('.label').textContent.trim();
                     sendCommand(cmd, label);
-                    // Don't close immediately - let sendData complete naturally
                 });
-
-                btn.addEventListener('touchstart', function() {
-                    this.style.transform = 'scale(0.95)';
-                }, { passive: true });
-                btn.addEventListener('touchend', function() {
-                    this.style.transform = '';
-                }, { passive: true });
             });
 
-            // Custom query
-            const input = document.getElementById('query-input');
-            const sendCustom = document.getElementById('send-btn');
+            var input = document.getElementById('query-input');
+            var sendCustom = document.getElementById('send-btn');
 
             function submitCustom() {
-                const text = input.value.trim();
+                var text = input.value.trim();
                 if (!text) {
                     input.style.outline = '2px solid #ff453a';
                     setTimeout(function() { input.style.outline = 'none'; }, 600);
