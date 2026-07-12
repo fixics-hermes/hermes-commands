@@ -237,6 +237,10 @@
             const tg = window.Telegram.WebApp;
             tg.expand();
             tg.MainButton.hide();
+            tg.ready(); // Signal that the web app is ready
+
+            // Set version so we can verify cache busting
+            const APP_VERSION = '2';
 
             const toast = document.getElementById('toast');
             let toastTimer = null;
@@ -252,13 +256,14 @@
                 const payload = JSON.stringify({
                     command: cmd,
                     label: label,
-                    text: extra || ''
+                    text: extra || '',
+                    v: APP_VERSION
                 });
                 try {
                     tg.sendData(payload);
                     showToast('✓ ' + label);
                 } catch(e) {
-                    showToast('✗ Ошибка отправки');
+                    showToast('✗ Ошибка: ' + e.message);
                 }
             }
 
@@ -268,10 +273,9 @@
                     const cmd = this.dataset.cmd;
                     const label = this.querySelector('.label').textContent.trim();
                     sendCommand(cmd, label);
-                    setTimeout(function() { tg.close(); }, 400);
+                    // Don't close immediately - let sendData complete naturally
                 });
 
-                // Touch feedback
                 btn.addEventListener('touchstart', function() {
                     this.style.transform = 'scale(0.95)';
                 }, { passive: true });
@@ -293,7 +297,6 @@
                 }
                 sendCommand('custom', 'Свой запрос', text);
                 input.value = '';
-                setTimeout(function() { tg.close(); }, 400);
             }
 
             sendCustom.addEventListener('click', submitCustom);
@@ -301,7 +304,6 @@
                 if (e.key === 'Enter') submitCustom();
             });
 
-            // Auto-focus input on desktop
             if (window.innerWidth > 600) {
                 setTimeout(function() { input.focus(); }, 300);
             }
