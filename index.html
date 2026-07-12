@@ -69,24 +69,21 @@
         }
 
         function run(cmd) {
+            // Copy to clipboard
             try { navigator.clipboard.writeText(cmd); } catch(e) {}
 
-            // Send data via web_app_data_send (same as sendData)
+            // Try sendData (best effort)
             try {
                 var payload = JSON.stringify({command: 'cmd', text: cmd});
-                if (tg.sendData) {
-                    tg.sendData(payload);
-                } else if (webview && webview.postEvent) {
-                    webview.postEvent('web_app_data_send', false, {data: payload});
-                }
+                if (tg.sendData) tg.sendData(payload);
             } catch(e) {}
 
-            show('✓ ' + cmd);
+            show('↵ Скопировано. Вставь в чат: ' + cmd);
 
-            // Close after short delay so sendData has time to go through
+            // Close
             setTimeout(function() {
                 try { tg.close(); } catch(e) {}
-            }, 200);
+            }, 300);
         }
     </script>
 </body>
