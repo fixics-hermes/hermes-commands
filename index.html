@@ -4,308 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <title>Hermes — команды</title>
+    <title>Hermes</title>
     <style>
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        :root {
-            --bg: var(--tg-theme-bg-color, #1a1a2e);
-            --text: var(--tg-theme-text-color, #e0e0e0);
-            --hint: var(--tg-theme-hint-color, #8e8e93);
-            --link: var(--tg-theme-link-color, #5b9aff);
-            --btn: var(--tg-theme-button-color, #2b7cff);
-            --btn-text: var(--tg-theme-button-text-color, #ffffff);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #232336);
-            --section-bg: var(--tg-theme-section-bg-color, #1e1e32);
-            --card-bg: color-mix(in srgb, var(--secondary-bg) 60%, transparent);
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 16px;
-            min-height: 100vh;
-            transition: background 0.2s;
-        }
-        .header {
-            text-align: center;
-            padding: 16px 0 20px;
-        }
-        .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-        .header p {
-            font-size: 13px;
-            color: var(--hint);
-            margin-top: 4px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .cmd-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 18px 10px;
-            border: none;
-            border-radius: 14px;
-            background: var(--card-bg);
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-            -webkit-tap-highlight-color: transparent;
-            position: relative;
-            overflow: hidden;
-            min-height: 90px;
-        }
-        .cmd-btn:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-        .cmd-btn .icon {
-            font-size: 28px;
-            line-height: 1;
-        }
-        .cmd-btn .label {
-            font-size: 12px;
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.3;
-            opacity: 0.9;
-        }
-        .cmd-btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: var(--btn);
-            opacity: 0;
-            transition: opacity 0.2s;
-            border-radius: 14px;
-        }
-        .cmd-btn:active::after {
-            opacity: 0.12;
-        }
-
-        /* Custom input section */
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--hint);
-            margin-bottom: 10px;
-            padding-left: 2px;
-        }
-        .custom-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-        }
-        .custom-row input {
-            flex: 1;
-            padding: 14px 16px;
-            border: none;
-            border-radius: 12px;
-            background: var(--card-bg);
-            color: var(--text);
-            font-size: 15px;
-            outline: none;
-            transition: background 0.2s;
-        }
-        .custom-row input::placeholder {
-            color: var(--hint);
-            opacity: 0.7;
-        }
-        .custom-row input:focus {
-            background: color-mix(in srgb, var(--card-bg) 80%, white);
-        }
-        .send-btn {
-            padding: 14px 20px;
-            border: none;
-            border-radius: 12px;
-            background: var(--btn);
-            color: var(--btn-text);
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-            -webkit-tap-highlight-color: transparent;
-            min-width: 54px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .send-btn:active {
-            transform: scale(0.92);
-            opacity: 0.85;
-        }
-
-        /* Status toast */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: var(--btn);
-            color: var(--btn-text);
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            transition: transform 0.35s cubic-bezier(0.32, 0, 0.68, 1), opacity 0.3s;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        @media (max-width: 380px) {
-            .cmd-btn { min-height: 80px; padding: 14px 8px; }
-            .cmd-btn .icon { font-size: 24px; }
-            .cmd-btn .label { font-size: 11px; }
-        }
-        @media (min-width: 500px) {
-            .grid { grid-template-columns: repeat(3, 1fr); }
-            body { padding: 24px; max-width: 600px; margin: 0 auto; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #1a1a2e); color: var(--tg-theme-text-color, #e0e0e0); padding: 16px; min-height: 100vh; }
+        .header { text-align: center; padding: 16px 0 20px; }
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .header p { font-size: 13px; color: var(--tg-theme-hint-color, #8e8e93); margin-top: 4px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .cmd-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 10px; border: none; border-radius: 14px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 90px; }
+        .cmd-btn .icon { font-size: 28px; }
+        .cmd-btn .label { font-size: 12px; font-weight: 600; text-align: center; }
+        .cmd-btn:active { transform: scale(0.95); opacity: 0.8; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--tg-theme-hint-color, #8e8e93); margin-bottom: 10px; }
+        .custom-row { display: flex; gap: 10px; }
+        .custom-row input { flex: 1; padding: 14px 16px; border: none; border-radius: 12px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 15px; outline: none; }
+        .send-btn { padding: 14px 20px; border: none; border-radius: 12px; background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); font-size: 18px; font-weight: 600; cursor: pointer; min-width: 54px; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; white-space: nowrap; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>⚡ Hermes</h1>
-        <p>Быстрые команды</p>
-    </div>
-
+    <div class="header"><h1>⚡ Hermes</h1><p>Быстрые команды</p></div>
     <div class="grid">
-        <button class="cmd-btn" data-cmd="почта">
-            <span class="icon">📧</span>
-            <span class="label">Проверить почту</span>
-        </button>
-        <button class="cmd-btn" data-cmd="plane">
-            <span class="icon">📋</span>
-            <span class="label">Брифы в Plane</span>
-        </button>
-        <button class="cmd-btn" data-cmd="zabbix">
-            <span class="icon">📊</span>
-            <span class="label">Статус Zabbix</span>
-        </button>
-        <button class="cmd-btn" data-cmd="инфра">
-            <span class="icon">🖥</span>
-            <span class="label">Инфраструктура</span>
-        </button>
-        <button class="cmd-btn" data-cmd="obsidian">
-            <span class="icon">📝</span>
-            <span class="label">Записать в КБ</span>
-        </button>
-        <button class="cmd-btn" data-cmd="память">
-            <span class="icon">🔍</span>
-            <span class="label">Поиск в памяти</span>
-        </button>
-        <button class="cmd-btn" data-cmd="статус">
-            <span class="icon">🔄</span>
-            <span class="label">Статус систем</span>
-        </button>
-        <button class="cmd-btn" data-cmd="логи">
-            <span class="icon">📜</span>
-            <span class="label">Логи гейта</span>
-        </button>
+        <button class="cmd-btn" onclick="run('📧 Проверить почту')"><span class="icon">📧</span><span class="label">Проверить почту</span></button>
+        <button class="cmd-btn" onclick="run('📋 Брифы в Plane')"><span class="icon">📋</span><span class="label">Брифы в Plane</span></button>
+        <button class="cmd-btn" onclick="run('📊 Статус Zabbix')"><span class="icon">📊</span><span class="label">Статус Zabbix</span></button>
+        <button class="cmd-btn" onclick="run('🖥 Инфраструктура')"><span class="icon">🖥</span><span class="label">Инфраструктура</span></button>
+        <button class="cmd-btn" onclick="run('📝 Записать в КБ')"><span class="icon">📝</span><span class="label">Записать в КБ</span></button>
+        <button class="cmd-btn" onclick="run('🔍 Поиск в памяти')"><span class="icon">🔍</span><span class="label">Поиск в памяти</span></button>
+        <button class="cmd-btn" onclick="run('🔄 Статус систем')"><span class="icon">🔄</span><span class="label">Статус систем</span></button>
+        <button class="cmd-btn" onclick="run('📜 Логи гейта')"><span class="icon">📜</span><span class="label">Логи гейта</span></button>
     </div>
-
-    <div class="section-title">✏️ Свой запрос</div>
-    <div class="custom-row">
-        <input type="text" id="query-input" placeholder="Напиши что сделать..." autocomplete="off">
-        <button class="send-btn" id="send-btn">→</button>
-    </div>
-
-    <div class="toast" id="toast">✓ Отправлено</div>
-
+    <div class="toast" id="toast"></div>
     <script>
-        (function() {
-            var tg = window.Telegram.WebApp;
+        var tg = window.Telegram.WebApp;
+        tg.expand();
+        var toast = document.getElementById('toast');
 
-            // Log tg object properties to debug
-            var debugInfo = 'tg type=' + typeof tg;
-            if (tg) {
-                debugInfo += ' expand=' + (typeof tg.expand);
-                debugInfo += ' close=' + (typeof tg.close);
-                debugInfo += ' sendData=' + (typeof tg.sendData);
-                debugInfo += ' ready=' + (typeof tg.ready);
-            }
+        function show(text) {
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+        }
 
-            // Show debug info as a toast
-            var toast = document.getElementById('toast');
-
-            function showToast(text) {
-                toast.textContent = text;
-                toast.classList.add('show');
-                setTimeout(function() { toast.classList.remove('show'); }, 3000);
-            }
-
-            // Show debug
-            showToast(debugInfo);
-
-            try { tg.expand(); } catch(e) { showToast('expand err: ' + e.message); }
-            try { tg.ready(); } catch(e) { showToast('ready err: ' + e.message); }
-
-            function sendCommand(cmd, label, extra) {
-                var text = label + (extra ? ': ' + extra : '');
-
-                // Try everything we can
-                try {
-                    if (tg && tg.sendData) {
-                        tg.sendData(JSON.stringify({command: cmd, label: label, text: extra || ''}));
-                    }
-                } catch(e) { showToast('sendData: ' + e.message); }
-
-                try {
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(text);
-                    }
-                } catch(e) {}
-
-                try { tg.close(); } catch(e) { showToast('close err: ' + e.message); }
-            }
-
-            // Bind buttons
-            var buttons = document.querySelectorAll('.cmd-btn');
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].addEventListener('click', function() {
-                    sendCommand(this.dataset.cmd, this.querySelector('.label').textContent.trim());
-                });
-            }
-
-            var input = document.getElementById('query-input');
-            var sendCustom = document.getElementById('send-btn');
-
-            function submitCustom() {
-                var text = input.value.trim();
-                if (!text) {
-                    input.style.outline = '2px solid #ff453a';
-                    setTimeout(function() { input.style.outline = 'none'; }, 600);
-                    return;
-                }
-                sendCommand('custom', 'Свой запрос', text);
-                input.value = '';
-            }
-
-            sendCustom.addEventListener('click', submitCustom);
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') submitCustom();
-            });
-        })();
+        function run(cmd) {
+            // Copy to clipboard
+            try { navigator.clipboard.writeText(cmd); } catch(e) {}
+            show('✓ ' + cmd);
+            // Navigate to chat with pre-filled message
+            window.location.href = 'tg://resolve?domain=fixicshbot&text=' + encodeURIComponent(cmd);
+        }
     </script>
 </body>
 </html>
