@@ -259,12 +259,31 @@
                     text: extra || '',
                     v: APP_VERSION
                 });
+
+                // 1) Try sendData (standard Mini App method)
                 try {
-                    tg.sendData(payload);
-                    showToast('✓ ' + label);
+                    if (tg.sendData) {
+                        tg.sendData(payload);
+                        showToast('✓ ' + label);
+                        return;
+                    }
                 } catch(e) {
-                    showToast('✗ Ошибка: ' + e.message);
+                    // sendData failed, fall through
                 }
+
+                // 2) Fallback: copy to clipboard + show popup
+                var fallbackText = label + (extra ? ': ' + extra : '');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(fallbackText).catch(function(){});
+                }
+                if (tg.showPopup) {
+                    tg.showPopup({
+                        title: label,
+                        message: 'Команда скопирована. Отправь её в чат.\n\n' + fallbackText,
+                        buttons: [{type: 'close', text: 'ОК'}]
+                    });
+                }
+                showToast('✗ Не отправилось. Скопировано: ' + fallbackText.substring(0, 30));
             }
 
             // Command buttons
