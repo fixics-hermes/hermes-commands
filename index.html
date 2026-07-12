@@ -7,96 +7,173 @@
     <title>Hermes</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #1a1a2e); color: var(--tg-theme-text-color, #e0e0e0); padding: 16px; min-height: 100vh; }
-        .header { text-align: center; padding: 16px 0 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--tg-theme-bg-color, #1a1a2e); color: var(--tg-theme-text-color, #e0e0e0); height: 100vh; overflow: hidden; }
+        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+        .screen.hidden { display: none; }
+        #main-screen { padding: 16px; overflow-y: auto; }
+        .header { text-align: center; padding: 12px 0 14px; }
         .header h1 { font-size: 22px; font-weight: 700; }
-        .header p { font-size: 13px; color: var(--tg-theme-hint-color, #8e8e93); margin-top: 4px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .cmd-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 10px; border: none; border-radius: 14px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 90px; }
-        .cmd-btn .icon { font-size: 28px; }
-        .cmd-btn .label { font-size: 12px; font-weight: 600; text-align: center; }
+        .header p { font-size: 13px; color: var(--tg-theme-hint-color, #8e8e93); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cmd-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px 10px; border: none; border-radius: 14px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 14px; font-weight: 500; cursor: pointer; min-height: 78px; transition: transform 0.15s; }
+        .cmd-btn .icon { font-size: 26px; }
+        .cmd-btn .label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.3; }
         .cmd-btn:active { transform: scale(0.95); opacity: 0.8; }
-        .section-title { font-size: 14px; font-weight: 600; color: var(--tg-theme-hint-color, #8e8e93); margin-bottom: 10px; }
-        .custom-row { display: flex; gap: 10px; }
-        .custom-row input { flex: 1; padding: 14px 16px; border: none; border-radius: 12px; background: color-mix(in srgb, var(--tg-theme-secondary-bg-color, #232336) 60%, transparent); color: var(--tg-theme-text-color, #e0e0e0); font-size: 15px; outline: none; }
-        .send-btn { padding: 14px 20px; border: none; border-radius: 12px; background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); font-size: 18px; font-weight: 600; cursor: pointer; min-width: 54px; }
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #ffffff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; }
+
+        #content-screen { background: var(--tg-theme-bg-color, #1a1a2e); }
+        .content-bar { display: flex; align-items: center; padding: 10px 12px; background: var(--tg-theme-secondary-bg-color, #232336); min-height: 44px; gap: 10px; flex-shrink: 0; }
+        .back-btn { background: none; border: none; color: var(--tg-theme-button-color, #2b7cff); font-size: 15px; font-weight: 500; cursor: pointer; padding: 4px 8px; }
+        .back-btn::before { content: '← '; }
+        .content-title { font-size: 14px; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .content-body { flex: 1; overflow: hidden; position: relative; }
+        .content-body iframe { width: 100%; height: 100%; border: none; }
+
+        .action-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 20px; text-align: center; height: 100%; }
+        .action-card .icon { font-size: 48px; }
+        .action-card .msg { font-size: 14px; color: var(--tg-theme-hint-color, #8e8e93); }
+        .action-card .cmd-text { font-size: 16px; font-weight: 600; padding: 12px 20px; background: var(--tg-theme-secondary-bg-color, #232336); border-radius: 12px; margin: 8px 0; }
+        .btn-primary { background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); border: none; padding: 12px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-secondary { background: transparent; color: var(--tg-theme-button-color, #2b7cff); border: 1px solid var(--tg-theme-button-color, #2b7cff); padding: 12px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--tg-theme-button-color, #2b7cff); color: var(--tg-theme-button-text-color, #fff); padding: 12px 24px; border-radius: 12px; font-size: 14px; opacity: 0; transition: transform 0.35s, opacity 0.3s; pointer-events: none; z-index: 99; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .debug-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #333; color: #0f0; font-size: 10px; padding: 3px; text-align: center; font-family: monospace; }
     </style>
 </head>
 <body>
-    <div class="header"><h1>⚡ Hermes</h1><p>Просто нажми — текст скопируется</p></div>
+
+<div class="debug-bar" id="debug">⚡</div>
+
+<div class="screen" id="main-screen">
+    <div class="header"><h1>⚡ Hermes</h1><p>Быстрый доступ</p></div>
     <div class="grid">
-        <button class="cmd-btn" onclick="run('📧 Проверить почту')"><span class="icon">📧</span><span class="label">Проверить почту</span></button>
-        <button class="cmd-btn" onclick="run('📋 Брифы в Plane')"><span class="icon">📋</span><span class="label">Брифы в Plane</span></button>
-        <button class="cmd-btn" onclick="run('📊 Статус Zabbix')"><span class="icon">📊</span><span class="label">Статус Zabbix</span></button>
-        <button class="cmd-btn" onclick="run('🖥 Инфраструктура')"><span class="icon">🖥</span><span class="label">Инфраструктура</span></button>
-        <button class="cmd-btn" onclick="run('📝 Записать в КБ')"><span class="icon">📝</span><span class="label">Записать в КБ</span></button>
-        <button class="cmd-btn" onclick="run('🔍 Поиск в памяти')"><span class="icon">🔍</span><span class="label">Поиск в памяти</span></button>
-        <button class="cmd-btn" onclick="run('🔄 Статус систем')"><span class="icon">🔄</span><span class="label">Статус систем</span></button>
-        <button class="cmd-btn" onclick="run('📜 Логи гейта')"><span class="icon">📜</span><span class="label">Логи гейта</span></button>
+        <button class="cmd-btn" data-type="cmd" data-cmd="📧 Проверить почту" data-emoji="📧" data-label="Почта">
+            <span class="icon">📧</span><span class="label">Почта</span>
+        </button>
+        <button class="cmd-btn" data-type="open" data-url="https://app.plane.so" data-emoji="📋" data-label="Plane">
+            <span class="icon">📋</span><span class="label">Plane</span>
+        </button>
+        <button class="cmd-btn" data-type="cmd" data-cmd="📊 Статус Zabbix" data-emoji="📊" data-label="Zabbix">
+            <span class="icon">📊</span><span class="label">Zabbix</span>
+        </button>
+        <button class="cmd-btn" data-type="iframe" data-url="/infra-kb/" data-emoji="🖥" data-label="Инфра">
+            <span class="icon">🖥</span><span class="label">Инфра КБ</span>
+        </button>
+        <button class="cmd-btn" data-type="open" data-url="https://kaneo.polynkovsk.ru" data-emoji="📝" data-label="Канбан">
+            <span class="icon">📝</span><span class="label">Канбан</span>
+        </button>
+        <button class="cmd-btn" data-type="open" data-url="https://outline.polynkovsk.ru" data-emoji="📖" data-label="Outline">
+            <span class="icon">📖</span><span class="label">Outline</span>
+        </button>
+        <button class="cmd-btn" data-type="cmd" data-cmd="🔄 Статус систем" data-emoji="🔄" data-label="Системы">
+            <span class="icon">🔄</span><span class="label">Системы</span>
+        </button>
+        <button class="cmd-btn" data-type="cmd" data-cmd="📜 Логи гейта" data-emoji="📜" data-label="Логи">
+            <span class="icon">📜</span><span class="label">Логи</span>
+        </button>
     </div>
-    <div class="toast" id="toast"></div>
-    <script>
-        var tg = window.Telegram.WebApp;
-        var webview = window.Telegram.WebView;
+</div>
 
-        var info = 'v=' + (tg.version || '?')
-            + ' plat=' + (tg.platform || '?')
-            + ' wv=' + (typeof webview);
+<div class="screen hidden" id="content-screen">
+    <div class="content-bar">
+        <button class="back-btn" id="back-btn">Главная</button>
+        <div class="content-title" id="content-title"></div>
+    </div>
+    <div class="content-body" id="content-body"></div>
+</div>
 
-        tg.ready();
-        tg.expand();
-        tg.disableVerticalSwipes();
-        tg.MainButton.hide();
+<div class="toast" id="toast"></div>
 
-        var toast = document.getElementById('toast');
+<script>
+(function() {
+    var D = document.getElementById('debug');
+    function d(m) { D.textContent = m; }
 
-        function show(text) {
-            toast.textContent = text;
-            toast.classList.add('show');
-            setTimeout(function(){ toast.classList.remove('show'); }, 3000);
-        }
+    var tg = window.Telegram.WebApp;
+    d('tg=' + typeof tg);
 
-        show(info);
+    try { tg.expand(); } catch(e) { d('expand err: ' + e); }
+    try { tg.ready(); } catch(e) { d('ready err: ' + e); }
 
-        // Try to close on click via back button
-        if (tg.BackButton) {
-            tg.BackButton.show();
-            tg.BackButton.onClick(function() {
-                tg.close();
-            });
-        }
+    var mainScreen = document.getElementById('main-screen');
+    var contentScreen = document.getElementById('content-screen');
+    var contentTitle = document.getElementById('content-title');
+    var contentBody = document.getElementById('content-body');
+    var toast = document.getElementById('toast');
 
-        function run(cmd) {
-            // Try clipboard (may fail silently on some devices)
-            try { navigator.clipboard.writeText(cmd); } catch(e) {}
+    function showToast(text) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(function(){ toast.classList.remove('show'); }, 2000);
+    }
 
-            // Try sendData (may work on some clients)
-            try {
-                var payload = JSON.stringify({command: 'cmd', text: cmd});
-                if (tg.sendData) tg.sendData(payload);
-            } catch(e) {}
+    document.getElementById('back-btn').addEventListener('click', function() {
+        d('back');
+        mainScreen.classList.remove('hidden');
+        contentScreen.classList.add('hidden');
+    });
 
-            // Show popup with command, close mini-app after dismissal
-            if (tg.showPopup) {
-                // Close automatically when popup is dismissed
-                tg.onEvent('popupClosed', function() {
-                    try { tg.close(); } catch(e) {}
-                });
+    var btns = document.querySelectorAll('.cmd-btn');
+    d('btns=' + btns.length);
 
-                tg.showPopup({
-                    title: 'Команда',
-                    message: cmd + '\n\nОтправь мне это в чат.',
-                    buttons: [{type: 'close', text: 'ОК'}]
-                });
-            } else {
-                show(cmd);
+    for (var i = 0; i < btns.length; i++) {
+        btnClick(btns[i]);
+    }
+
+    function btnClick(btn) {
+        btn.addEventListener('click', function() {
+            var type = btn.dataset.type;
+            var cmd = btn.dataset.cmd || '';
+            var url = btn.dataset.url || '';
+            var emoji = btn.dataset.emoji || '';
+            var label = btn.dataset.label || '';
+            d('click: ' + label);
+
+            contentTitle.textContent = emoji + ' ' + (label || cmd);
+            mainScreen.classList.add('hidden');
+            contentScreen.classList.remove('hidden');
+
+            if (type === 'iframe') {
+                contentBody.innerHTML = '<iframe src="' + url + '"></iframe>';
+            } else if (type === 'open') {
+                contentBody.innerHTML =
+                    '<div class="action-card">' +
+                    '<div class="icon">' + emoji + '</div>' +
+                    '<div class="msg">Открыть в браузере</div>' +
+                    '<button class="btn-primary" id="open-ext-btn">↗ ' + label + '</button>' +
+                    '</div>';
                 setTimeout(function() {
-                    try { tg.close(); } catch(e) {}
-                }, 2000);
+                    var b = document.getElementById('open-ext-btn');
+                    if (b) b.addEventListener('click', function() { tg.openLink(url); });
+                }, 50);
+            } else if (type === 'cmd') {
+                contentBody.innerHTML =
+                    '<div class="action-card">' +
+                    '<div class="icon">' + emoji + '</div>' +
+                    '<div class="msg">Отправить команду</div>' +
+                    '<div class="cmd-text">' + cmd + '</div>' +
+                    '<div class="btn-row">' +
+                    '<button class="btn-primary" id="copy-btn">📋 Копировать</button>' +
+                    '<button class="btn-secondary" id="send-btn">▶ Отправить</button>' +
+                    '</div></div>';
+                setTimeout(function() {
+                    var cb = document.getElementById('copy-btn');
+                    var sb = document.getElementById('send-btn');
+                    if (cb) cb.addEventListener('click', function() {
+                        try { navigator.clipboard.writeText(cmd); } catch(e) {}
+                        showToast('✓ Скопировано: ' + cmd);
+                    });
+                    if (sb) sb.addEventListener('click', function() {
+                        try { tg.sendData(JSON.stringify({text: cmd})); } catch(e) {}
+                        showToast('✓ Отправлено: ' + cmd);
+                        setTimeout(function(){ try { tg.close(); } catch(e) {} }, 600);
+                    });
+                }, 50);
             }
-        }
-    </script>
+        });
+    }
+})();
+</script>
 </body>
 </html>
