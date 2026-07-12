@@ -253,39 +253,11 @@
             }
 
             function sendCommand(cmd, label, extra) {
-                const payload = JSON.stringify({
-                    command: cmd,
-                    label: label,
-                    text: extra || '',
-                    v: APP_VERSION
-                });
-
-                // 1) Try sendData (standard Mini App method)
-                try {
-                    if (tg.sendData) {
-                        tg.sendData(payload);
-                        showToast('✓ ' + label);
-                        return;
-                    } else {
-                        showToast('✗ tg.sendData не существует');
-                    }
-                } catch(e) {
-                    showToast('✗ ' + (e.message || e));
-                }
-
-                // 2) Fallback: copy to clipboard + show popup
                 var fallbackText = label + (extra ? ': ' + extra : '');
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(fallbackText).catch(function(){});
-                }
-                if (tg.showPopup) {
-                    tg.showPopup({
-                        title: label,
-                        message: 'Команда скопирована. Отправь её в чат.\n\n' + fallbackText,
-                        buttons: [{type: 'close', text: 'ОК'}]
-                    });
-                }
-                showToast('✗ Не отправилось. Скопировано: ' + fallbackText.substring(0, 30));
+
+                // Try deep link method (works on most Telegram clients)
+                var encodedText = encodeURIComponent(fallbackText);
+                window.location.href = 'tg://resolve?domain=fixicshbot&text=' + encodedText;
             }
 
             // Command buttons
