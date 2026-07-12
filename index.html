@@ -41,13 +41,15 @@
         var tg = window.Telegram.WebApp;
         var webview = window.Telegram.WebView;
 
-        // Debug: what platform and version?
-        var info = 'plat=' + (tg.platform || '?')
-            + ' ver=' + (tg.version || '?')
-            + ' wv=' + (typeof webview)
-            + ' wvpe=' + (webview && typeof webview.postEvent);
+        var info = 'v=' + (tg.version || '?')
+            + ' plat=' + (tg.platform || '?')
+            + ' wv=' + (typeof webview);
 
+        tg.ready();
         tg.expand();
+        tg.disableVerticalSwipes();
+        tg.MainButton.hide();
+
         var toast = document.getElementById('toast');
 
         function show(text) {
@@ -58,12 +60,30 @@
 
         show(info);
 
+        // Try to close on click via back button
+        if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.BackButton.onClick(function() {
+                tg.close();
+            });
+        }
+
         function run(cmd) {
             try { navigator.clipboard.writeText(cmd); } catch(e) {}
             show('✓ ' + cmd);
-            try { window.close(); } catch(e) {}
+
+            // Send via postEvent directly if sendData unavailable
+            try {
+                if (tg.sendData) {
+                    tg.sendData(cmd);
+                } else if (webview && webview.postEvent) {
+                    webview.postEvent('web_app_data_send', false, {data: cmd});
+                }
+            } catch(e) {}
+
+            // Close
             try { tg.close(); } catch(e) {}
-            try { if(tg.sendData) tg.sendData(cmd); } catch(e) {}
+            try { window.close(); } catch(e) {}
         }
     </script>
 </body>
